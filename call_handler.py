@@ -11,6 +11,7 @@ import audioop
 import json
 import logging
 import os
+import threading
 from typing import Any, Callable, Optional
 
 import websockets
@@ -39,7 +40,13 @@ app = FastAPI()
 # Scenario dict with keys like id, name, system_prompt, etc.
 current_scenario: Optional[dict] = None
 
-# Callback invoked when a call ends: fn(transcript_lines, audio_chunks, scenario)
+# CallRecorder instance set by main.py before each outbound call.
+current_recorder: Optional[Any] = None
+
+# Set by main.py; signaled in finally after the recorder saves.
+call_complete_event: Optional[threading.Event] = None
+
+# Optional legacy callback: fn(transcript_lines, audio_chunks, scenario)
 on_call_complete: Optional[Callable[..., Any]] = None
 
 # ---------------------------------------------------------------------------
@@ -205,7 +212,9 @@ async def media_stream(websocket: WebSocket) -> None:
     audio_chunks: list[bytes] = []
     bot_transcript_buffer = ""
     scenario = current_scenario or {}
+    recorder = current_recorder
     converter = AudioConverter()
+    call_errored = False
 
     # Block Twilio→OpenAI audio until the agent finishes its greeting.
     greeting_ready = asyncio.Event()
@@ -314,6 +323,8 @@ async def media_stream(websocket: WebSocket) -> None:
                         delta_b64
                     )
                     audio_chunks.append(pcm_bytes)
+                    if recorder is not None:
+                        recorder.add_audio_chunk(pcm_bytes)
 
                     await websocket.send_text(
                         json.dumps(
@@ -333,6 +344,8 @@ async def media_stream(websocket: WebSocket) -> None:
                     bot_transcript_buffer = ""
                     line = f"[PATIENT BOT] {transcript_text}"
                     transcript_lines.append(line)
+                    if recorder is not None:
+                        recorder.add_transcript_line("PATIENT BOT", transcript_text)
                     logger.info("Bot utterance completed: %s", transcript_text)
 
                 elif (
@@ -342,6 +355,8 @@ async def media_stream(websocket: WebSocket) -> None:
                     transcript_text = data.get("transcript", "")
                     line = f"[AGENT] {transcript_text}"
                     transcript_lines.append(line)
+                    if recorder is not None:
+                        recorder.add_transcript_line("AGENT", transcript_text)
                     logger.info("Agent utterance transcribed: %s", transcript_text)
 
                 elif event_type == "input_audio_buffer.speech_started":
@@ -385,9 +400,11 @@ async def media_stream(websocket: WebSocket) -> None:
         logger.info("Twilio WebSocket disconnected")
 
     except websockets.exceptions.ConnectionClosed as exc:
+        call_errored = True
         logger.error("OpenAI WebSocket disconnected unexpectedly: %s", exc)
 
     except Exception as exc:
+        call_errored = True
         logger.error("Media stream error: %s", exc, exc_info=True)
 
     finally:
@@ -399,6 +416,18 @@ async def media_stream(websocket: WebSocket) -> None:
                 pass
 
         logger.info("Call ended — captured %d transcript lines", len(transcript_lines))
+
+        if recorder is not None:
+            try:
+                if call_errored:
+                    recorder.save_partial()
+                else:
+                    recorder.save()
+            except Exception as exc:
+                logger.error("Recorder save failed: %s", exc, exc_info=True)
+
+        if call_complete_event is not None:
+            call_complete_event.set()
 
         if on_call_complete is not None:
             try:
