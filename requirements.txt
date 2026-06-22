@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+twilio
+openai
+websockets
+python-dotenv
+pydub
+httpx
+numpy
+audioop-lts
