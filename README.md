@@ -115,19 +115,24 @@ Run all 25 scenarios:
 python main.py --all
 ```
 
-Run the 10 curated submission scenarios (skips any already promoted):
+Run all 25 scenarios (auto-picks the best 10 for submission when finished):
+```bash
+python main.py --all
+```
+
+Preview which 10 calls would be selected without writing files:
+```bash
+python main.py --curate-dry-run
+```
+
+Manually re-curate the best 10 from existing recordings/:
+```bash
+python main.py --curate-submission
+```
+
+Run only the 10 curated submission scenarios (auto-promotes each):
 ```bash
 python main.py --submission
-```
-
-Check submission progress:
-```bash
-python main.py --submission-status
-```
-
-Promote an existing successful call manually:
-```bash
-python main.py --promote recordings/call_14 --scenario 1
 ```
 
 ---
@@ -142,12 +147,19 @@ After each call you will find:
 - `bug_report.md` — Auto-updated bug findings
 - `test_run.log` — Full debug log of the run
 
-Quality calls are auto-promoted into `submission_recordings/` when they include
-both speakers, last at least ~1 minute, and have a complete MP3 + transcript.
-The challenge requires **10 submission calls** in the repo — run:
+Quality calls are saved under `recordings/` during test runs. After `--all`,
+the best 10 are copied into `submission_recordings/` based on conversation
+length, turn count, and bug findings. The challenge requires **10 submission
+calls** in the repo.
 
+Check progress:
 ```bash
-python main.py --submission
+python main.py --submission-status
+```
+
+Promote one call manually:
+```bash
+python main.py --promote recordings/call_14 --scenario 1
 ```
 
 ---

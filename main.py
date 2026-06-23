@@ -24,6 +24,7 @@ from recorder import CallRecorder
 from scenarios import SCENARIOS, get_scenario
 from submission import (
     SUBMISSION_SCENARIO_IDS,
+    curate_submission,
     print_submission_status,
     promote_call,
     promote_existing_call,
@@ -208,8 +209,18 @@ def parse_arguments() -> argparse.Namespace:
         help=(
             "Run the 10 curated submission scenarios "
             f"({', '.join(str(sid) for sid in SUBMISSION_SCENARIO_IDS)}), "
-            "skipping any already promoted"
+            "auto-promoting each quality call"
         ),
+    )
+    parser.add_argument(
+        "--curate-submission",
+        action="store_true",
+        help="Pick the best 10 quality calls from recordings/ into submission_recordings/",
+    )
+    parser.add_argument(
+        "--curate-dry-run",
+        action="store_true",
+        help="Show which calls would be curated without writing submission_recordings/",
     )
     parser.add_argument(
         "--promote",
@@ -266,7 +277,7 @@ def resolve_scenario_ids(args: argparse.Namespace) -> list[int]:
 # ---------------------------------------------------------------------------
 
 
-def run_single_scenario(client: Client, scenario: dict) -> dict:
+def run_single_scenario(client: Client, scenario: dict, *, auto_promote: bool = False) -> dict:
     """
     Run one scenario end-to-end.
 
@@ -337,7 +348,9 @@ def run_single_scenario(client: Client, scenario: dict) -> dict:
             f"{issues_label}, saved to {result['folder']}"
         )
 
-        promoted = promote_call(recorder.get_call_folder(), scenario)
+        promoted = None
+        if auto_promote:
+            promoted = promote_call(recorder.get_call_folder(), scenario)
         if promoted:
             result["submission_folder"] = os.path.basename(promoted)
             print(f"  → Promoted to submission: {result['submission_folder']}")
@@ -444,6 +457,11 @@ def main() -> None:
         print_submission_status()
         return
 
+    if args.curate_submission or args.curate_dry_run:
+        curate_submission(dry_run=args.curate_dry_run)
+        print_submission_status()
+        return
+
     if args.promote:
         if not args.scenario or len(args.scenario) != 1:
             print("ERROR: --promote requires exactly one --scenario ID")
@@ -475,15 +493,26 @@ def main() -> None:
     )
 
     results: list[dict] = []
+    auto_promote = bool(args.submission)
     for index, scenario_id in enumerate(scenario_ids):
         scenario = get_scenario(scenario_id)
-        result = run_single_scenario(client, scenario)
+        result = run_single_scenario(client, scenario, auto_promote=auto_promote)
         results.append(result)
 
         if index < len(scenario_ids) - 1:
             wait_between_calls()
 
     print_summary_table(results)
+
+    if args.all:
+        findings_by_folder = {
+            row["folder"]: row["findings_count"]
+            for row in results
+            if row.get("folder") and row["folder"] != "—"
+        }
+        print("All scenarios complete — curating the best 10 calls for submission...")
+        curate_submission(findings_by_folder=findings_by_folder)
+
     print_submission_status()
 
 
