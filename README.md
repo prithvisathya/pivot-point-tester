@@ -115,16 +115,40 @@ Run all 25 scenarios:
 python main.py --all
 ```
 
+Run the 10 curated submission scenarios (skips any already promoted):
+```bash
+python main.py --submission
+```
+
+Check submission progress:
+```bash
+python main.py --submission-status
+```
+
+Promote an existing successful call manually:
+```bash
+python main.py --promote recordings/call_14 --scenario 1
+```
+
 ---
 
 ## Output Files
 
 After each call you will find:
 
-- `recordings/call_01/transcript.txt` — Full conversation transcript
-- `recordings/call_01/call.mp3` — Audio recording of the call
+- `recordings/call_01/transcript.txt` — Full conversation transcript (local scratch)
+- `recordings/call_01/call.mp3` — Audio recording of the call (local scratch)
+- `submission_recordings/` — Curated calls that meet submission quality bar (committed to GitHub)
 - `bug_report.md` — Auto-updated bug findings
 - `test_run.log` — Full debug log of the run
+
+Quality calls are auto-promoted into `submission_recordings/` when they include
+both speakers, last at least ~1 minute, and have a complete MP3 + transcript.
+The challenge requires **10 submission calls** in the repo — run:
+
+```bash
+python main.py --submission
+```
 
 ---
 
@@ -161,10 +185,12 @@ pivot-point-tester/
 ├── scenarios.py         All 25 patient test personas
 ├── recorder.py          Saves audio recordings and transcripts
 ├── analyzer.py          Scans transcripts for bug patterns
+├── submission.py        Promotes quality calls into submission_recordings/
 ├── bug_report.md        Running bug report updated after each call
+├── submission_recordings/ Curated submission calls (MP3 + transcript)
 ├── .env.example         Template for required environment variables
 ├── requirements.txt     Python dependencies
-└── recordings/          Auto-created, stores all call recordings
+└── recordings/          Local scratch recordings (gitignored)
 ```
 
 ---

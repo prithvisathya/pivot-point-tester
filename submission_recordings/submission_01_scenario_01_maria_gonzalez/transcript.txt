@@ -1,0 +1,38 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 1
+Patient Name: Maria Gonzalez
+Date of Birth: March 14 1985
+Goal: Schedule a new patient consultation, accept the first available slot
+Call Date: 2026-06-23 09:51:02
+Recording: call.mp3
+================================================
+
+[00:00:12] [PATIENT BOT]: Hi, um,
+
+[00:00:13] [AGENT]: This call may be recorded for quality and training purposes.
+
+[00:00:22] [AGENT]: Thank you for calling Pivot Point Orthopaedics. Would you like to create a demo patient profile? I just need your first and last name to get started.
+
+[00:00:22] [PATIENT BOT]: Yes, my first name is Maria, and my last name is Gonzalez.
+
+[00:00:40] [AGENT]: Your patient profile is set up and your date of birth is July 4, 2000 for demo purposes. How may I help you today?
+
+[00:00:41] [PATIENT BOT]: Um, I’m a new patient and I’d like to schedule a new patient consultation, and my date of birth is actually March 14, 1985.
+
+[00:01:02] [AGENT]: Thanks for letting me know. I have your date of birth as March 14th, 1985. Do you have a specific provider you'd like to see or are you open to the first available?
+
+[00:01:02] [PATIENT BOT]: I’m open to the first available, uh, provider.
+
+[00:01:23] [AGENT]: We have openings for a new patient consultation this Thursday, June 25th with Doogie Houser. Would you like 1030 a.m., 345 p.m., or 430 p.m.?
+
+[00:01:23] [PATIENT BOT]: Uh, I’ll take the 10:30 AM slot.
+
+[00:01:50] [PATIENT BOT]: That is all, thank you.
+
+[00:01:50] [AGENT]: You're all set for a new patient consultation on Thursday, June 25th at 10.30 a.m. with Doogie Houser. Please bring your photo ID, insurance card, a list of your current medications, and any imaging discs if you have them. Is there anything else I can help you with today?
+
+[00:02:01] [AGENT]: You're scheduled and ready to go. If you need anything else, just give us a call. Have a great day!
+
+[00:02:02] [PATIENT BOT]: That is all I needed, thank you so much, goodbye.

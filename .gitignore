@@ -1,5 +1,11 @@
 .env
+challenge.md
 recordings/
 test_run.log
+test_models.py
 __pycache__/
 *.pyc
+
+# Local scratch recordings stay ignored; submission artifacts are committed.
+!submission_recordings/
+!submission_recordings/**
