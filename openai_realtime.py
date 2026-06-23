@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Connection settings
 # ---------------------------------------------------------------------------
 
-OPENAI_REALTIME_MODEL = "gpt-4o-realtime-preview-2024-10-01"
+OPENAI_REALTIME_MODEL = "gpt-realtime-2"
 
 OPENAI_REALTIME_URL = (
     f"wss://api.openai.com/v1/realtime?model={OPENAI_REALTIME_MODEL}"
