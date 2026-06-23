@@ -103,23 +103,16 @@ async def connect(api_key: str):
     """
     Open a raw WebSocket connection to the OpenAI Realtime GA API.
 
-    Uses the websockets library with extra_headers (not the OpenAI SDK).
+    Uses the websockets library with additional_headers (not the OpenAI SDK).
     No OpenAI-Beta header — beta Realtime API is no longer supported.
     """
     logger.info("Connecting to OpenAI Realtime: %s", OPENAI_REALTIME_URL)
     headers = build_connection_headers(api_key)
 
-    try:
-        ws = await websockets.connect(
-            OPENAI_REALTIME_URL,
-            extra_headers=headers,
-        )
-    except TypeError:
-        # Newer websockets releases renamed extra_headers -> additional_headers.
-        ws = await websockets.connect(
-            OPENAI_REALTIME_URL,
-            additional_headers=headers,
-        )
+    ws = await websockets.connect(
+        OPENAI_REALTIME_URL,
+        additional_headers=headers,
+    )
 
     logger.info("OpenAI Realtime WebSocket connected")
     return ws
