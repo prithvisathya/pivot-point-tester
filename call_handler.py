@@ -1,5 +1,5 @@
 """
-FastAPI bridge between Twilio Media Streams and the OpenAI Realtime API.
+FastAPI bridge between Twilio Media Streams and the OpenAI Realtime GA API.
 
 Receives phone audio from Twilio, converts it for OpenAI, plays the simulated
 patient's responses back to the call, and captures transcript/audio for analysis.
@@ -19,6 +19,22 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, Response
 
+from openai_realtime import (
+    EVENT_ERROR,
+    EVENT_INPUT_AUDIO_TRANSCRIPTION_COMPLETED,
+    EVENT_RESPONSE_AUDIO_DELTA,
+    EVENT_RESPONSE_AUDIO_TRANSCRIPT_DELTA,
+    EVENT_RESPONSE_AUDIO_TRANSCRIPT_DONE,
+    EVENT_SESSION_CREATED,
+    EVENT_SESSION_UPDATED,
+    EVENT_SPEECH_STARTED,
+    EVENT_SPEECH_STOPPED,
+    RealtimeHandshakeError,
+    build_input_audio_append,
+    connect as connect_openai,
+    initialize_session,
+)
+
 load_dotenv()
 
 # ---------------------------------------------------------------------------
@@ -37,16 +53,9 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Scenario dict with keys like id, name, system_prompt, etc.
 current_scenario: Optional[dict] = None
-
-# CallRecorder instance set by main.py before each outbound call.
 current_recorder: Optional[Any] = None
-
-# Set by main.py; signaled in finally after the recorder saves.
 call_complete_event: Optional[threading.Event] = None
-
-# Optional legacy callback: fn(transcript_lines, audio_chunks, scenario)
 on_call_complete: Optional[Callable[..., Any]] = None
 
 # ---------------------------------------------------------------------------
@@ -57,13 +66,9 @@ TWILIO_SAMPLE_RATE = 8000
 OPENAI_SAMPLE_RATE = 24000
 GREETING_DELAY_SECONDS = 2
 
-OPENAI_REALTIME_URL = (
-    "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"
-)
-
 
 # ---------------------------------------------------------------------------
-# Stateful audio conversion (ratecv needs persistent state for streaming)
+# Stateful audio conversion
 # ---------------------------------------------------------------------------
 
 
@@ -75,11 +80,6 @@ class AudioConverter:
         self._openai_to_twilio_state: Optional[tuple] = None
 
     def twilio_to_openai(self, audio_b64: str) -> tuple[str, bytes]:
-        """
-        Twilio → OpenAI pipeline:
-          base64 mulaw 8 kHz → PCM16 8 kHz → PCM16 24 kHz → base64
-        Returns (base64_for_openai, raw_pcm16_24k_bytes).
-        """
         mulaw_bytes = base64.b64decode(audio_b64)
         pcm16_8k = audioop.ulaw2lin(mulaw_bytes, 2)
         pcm16_24k, self._twilio_to_openai_state = audioop.ratecv(
@@ -93,11 +93,6 @@ class AudioConverter:
         return base64.b64encode(pcm16_24k).decode("utf-8"), pcm16_24k
 
     def openai_to_twilio(self, audio_b64: str) -> tuple[str, bytes]:
-        """
-        OpenAI → Twilio pipeline:
-          base64 PCM16 24 kHz → PCM16 8 kHz → mulaw → base64
-        Returns (base64_for_twilio, raw_pcm16_24k_bytes for recording).
-        """
         pcm16_24k = base64.b64decode(audio_b64)
         pcm16_8k, self._openai_to_twilio_state = audioop.ratecv(
             pcm16_24k,
@@ -112,35 +107,6 @@ class AudioConverter:
 
 
 # ---------------------------------------------------------------------------
-# OpenAI session configuration
-# ---------------------------------------------------------------------------
-
-
-def build_session_update(instructions: str) -> dict:
-    """Build the session.update payload sent right after connecting to OpenAI."""
-    return {
-        "type": "session.update",
-        "session": {
-            "turn_detection": {
-                "type": "server_vad",
-                "threshold": 0.5,
-                "prefix_padding_ms": 300,
-                "silence_duration_ms": 800,
-            },
-            "input_audio_format": "pcm16",
-            "output_audio_format": "pcm16",
-            "input_audio_transcription": {
-                "model": "whisper-1",
-            },
-            "voice": "alloy",
-            "instructions": instructions,
-            "modalities": ["text", "audio"],
-            "temperature": 0.8,
-        },
-    }
-
-
-# ---------------------------------------------------------------------------
 # HTTP endpoints
 # ---------------------------------------------------------------------------
 
@@ -152,18 +118,11 @@ async def on_startup() -> None:
 
 @app.get("/")
 async def root() -> HTMLResponse:
-    """Simple health-check page."""
     return HTMLResponse("<h1>Pivot Point Tester</h1><p>Server is running.</p>")
 
 
 @app.post("/incoming-call")
 async def incoming_call(request: Request) -> Response:
-    """
-    Twilio webhook: return TwiML that opens a Media Stream to our WebSocket.
-
-    Twilio POSTs here when a call connects; we respond with XML telling Twilio
-    to stream audio to /media-stream.
-    """
     logger.info("Incoming call received from %s", request.client)
 
     ngrok_url = os.getenv("NGROK_URL", "").rstrip("/")
@@ -175,7 +134,6 @@ async def incoming_call(request: Request) -> Response:
             status_code=500,
         )
 
-    # Twilio needs a wss:// URL for the media stream.
     ws_url = ngrok_url.replace("https://", "wss://").replace("http://", "ws://")
     stream_url = f"{ws_url}/media-stream"
 
@@ -197,16 +155,8 @@ async def incoming_call(request: Request) -> Response:
 
 @app.websocket("/media-stream")
 async def media_stream(websocket: WebSocket) -> None:
-    """
-    Bidirectional audio bridge between a Twilio call and OpenAI Realtime.
-
-    Twilio sends mulaw 8 kHz audio; OpenAI expects PCM16 24 kHz and responds
-    in the same format. We convert in both directions and capture transcript
-    plus audio chunks for the recorder.
-    """
     await websocket.accept()
 
-    # Per-call state
     stream_sid: Optional[str] = None
     transcript_lines: list[str] = []
     audio_chunks: list[bytes] = []
@@ -216,8 +166,8 @@ async def media_stream(websocket: WebSocket) -> None:
     converter = AudioConverter()
     call_errored = False
 
-    # Block Twilio→OpenAI audio until the agent finishes its greeting.
-    greeting_ready = asyncio.Event()
+    # Audio forwarding is blocked until handshake + greeting delay complete.
+    audio_forwarding_enabled = asyncio.Event()
 
     openai_api_key = os.getenv("OPENAI_API_KEY", "")
     if not openai_api_key:
@@ -231,34 +181,25 @@ async def media_stream(websocket: WebSocket) -> None:
     )
 
     openai_ws = None
+    greeting_task: Optional[asyncio.Task] = None
 
     try:
-        # --- Connect to OpenAI Realtime -----------------------------------
-        logger.info("Connecting to OpenAI Realtime API...")
-        openai_ws = await websockets.connect(
-            OPENAI_REALTIME_URL,
-            additional_headers={
-                "Authorization": f"Bearer {openai_api_key}",
-                "OpenAI-Beta": "realtime=v1",
-            },
-        )
-        logger.info("OpenAI connected")
+        # --- OpenAI handshake (session.created -> update -> updated) ------
+        openai_ws = await connect_openai(openai_api_key)
+        await initialize_session(openai_ws, instructions)
 
-        # Configure the session with the scenario's system prompt.
-        await openai_ws.send(json.dumps(build_session_update(instructions)))
-
-        # Start the 2-second greeting delay in the background.
         async def enable_audio_after_greeting() -> None:
+            """Let the office agent finish its greeting before we respond."""
             await asyncio.sleep(GREETING_DELAY_SECONDS)
-            greeting_ready.set()
+            audio_forwarding_enabled.set()
             logger.info(
-                "Greeting delay complete (%ss) — forwarding audio to OpenAI",
+                "Greeting delay complete (%ss) — forwarding Twilio audio to OpenAI",
                 GREETING_DELAY_SECONDS,
             )
 
         greeting_task = asyncio.create_task(enable_audio_after_greeting())
 
-        # --- Twilio → OpenAI loop -----------------------------------------
+        # --- Twilio → OpenAI ------------------------------------------------
         async def handle_twilio_messages() -> None:
             nonlocal stream_sid
 
@@ -277,19 +218,13 @@ async def media_stream(websocket: WebSocket) -> None:
                     if not payload:
                         continue
 
-                    # Wait for greeting delay before sending agent audio to OpenAI.
-                    await greeting_ready.wait()
+                    await audio_forwarding_enabled.wait()
 
                     openai_audio_b64, pcm_bytes = converter.twilio_to_openai(payload)
                     audio_chunks.append(pcm_bytes)
 
                     await openai_ws.send(
-                        json.dumps(
-                            {
-                                "type": "input_audio_buffer.append",
-                                "audio": openai_audio_b64,
-                            }
-                        )
+                        json.dumps(build_input_audio_append(openai_audio_b64))
                     )
 
                 elif event == "stop":
@@ -303,18 +238,21 @@ async def media_stream(websocket: WebSocket) -> None:
                 else:
                     logger.debug("Unhandled Twilio event: %s", event)
 
-        # --- OpenAI → Twilio loop -----------------------------------------
+        # --- OpenAI → Twilio ------------------------------------------------
         async def handle_openai_messages() -> None:
-            nonlocal bot_transcript_buffer
+            nonlocal bot_transcript_buffer, call_errored
 
             async for raw_message in openai_ws:
                 data = json.loads(raw_message)
                 event_type = data.get("type", "")
 
-                if event_type == "session.updated":
-                    logger.info("Session updated and ready")
+                if event_type == EVENT_SESSION_CREATED:
+                    logger.info("OpenAI session.created (post-handshake)")
 
-                elif event_type == "response.audio.delta":
+                elif event_type == EVENT_SESSION_UPDATED:
+                    logger.info("OpenAI session.updated (post-handshake)")
+
+                elif event_type == EVENT_RESPONSE_AUDIO_DELTA:
                     delta_b64 = data.get("delta", "")
                     if not delta_b64 or not stream_sid:
                         continue
@@ -336,10 +274,10 @@ async def media_stream(websocket: WebSocket) -> None:
                         )
                     )
 
-                elif event_type == "response.audio_transcript.delta":
+                elif event_type == EVENT_RESPONSE_AUDIO_TRANSCRIPT_DELTA:
                     bot_transcript_buffer += data.get("delta", "")
 
-                elif event_type == "response.audio_transcript.done":
+                elif event_type == EVENT_RESPONSE_AUDIO_TRANSCRIPT_DONE:
                     transcript_text = data.get("transcript", bot_transcript_buffer)
                     bot_transcript_buffer = ""
                     line = f"[PATIENT BOT] {transcript_text}"
@@ -348,10 +286,7 @@ async def media_stream(websocket: WebSocket) -> None:
                         recorder.add_transcript_line("PATIENT BOT", transcript_text)
                     logger.info("Bot utterance completed: %s", transcript_text)
 
-                elif (
-                    event_type
-                    == "conversation.item.input_audio_transcription.completed"
-                ):
+                elif event_type == EVENT_INPUT_AUDIO_TRANSCRIPTION_COMPLETED:
                     transcript_text = data.get("transcript", "")
                     line = f"[AGENT] {transcript_text}"
                     transcript_lines.append(line)
@@ -359,13 +294,14 @@ async def media_stream(websocket: WebSocket) -> None:
                         recorder.add_transcript_line("AGENT", transcript_text)
                     logger.info("Agent utterance transcribed: %s", transcript_text)
 
-                elif event_type == "input_audio_buffer.speech_started":
+                elif event_type == EVENT_SPEECH_STARTED:
                     logger.info("Agent started speaking")
 
-                elif event_type == "input_audio_buffer.speech_stopped":
+                elif event_type == EVENT_SPEECH_STOPPED:
                     logger.info("Agent stopped speaking")
 
-                elif event_type == "error":
+                elif event_type == EVENT_ERROR:
+                    call_errored = True
                     logger.error(
                         "OpenAI Realtime error: %s",
                         data.get("error", data),
@@ -374,7 +310,6 @@ async def media_stream(websocket: WebSocket) -> None:
                 else:
                     logger.debug("Unhandled OpenAI event: %s", event_type)
 
-        # Run both directions concurrently; end when either side disconnects.
         twilio_task = asyncio.create_task(handle_twilio_messages())
         openai_task = asyncio.create_task(handle_openai_messages())
 
@@ -390,11 +325,9 @@ async def media_stream(websocket: WebSocket) -> None:
             except asyncio.CancelledError:
                 pass
 
-        greeting_task.cancel()
-        try:
-            await greeting_task
-        except asyncio.CancelledError:
-            pass
+    except RealtimeHandshakeError as exc:
+        call_errored = True
+        logger.error("OpenAI Realtime handshake failed: %s", exc)
 
     except WebSocketDisconnect:
         logger.info("Twilio WebSocket disconnected")
@@ -408,7 +341,13 @@ async def media_stream(websocket: WebSocket) -> None:
         logger.error("Media stream error: %s", exc, exc_info=True)
 
     finally:
-        # Close OpenAI connection if still open.
+        if greeting_task is not None:
+            greeting_task.cancel()
+            try:
+                await greeting_task
+            except asyncio.CancelledError:
+                pass
+
         if openai_ws is not None:
             try:
                 await openai_ws.close()

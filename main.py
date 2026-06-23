@@ -22,6 +22,13 @@ from analyzer import analyze_call
 from call_handler import app
 from recorder import CallRecorder
 from scenarios import SCENARIOS, get_scenario
+from submission import (
+    SUBMISSION_SCENARIO_IDS,
+    curate_submission,
+    print_submission_status,
+    promote_call,
+    promote_existing_call,
+)
 
 # ---------------------------------------------------------------------------
 # Environment and logging
@@ -58,7 +65,7 @@ CALL_COMPLETE_WAIT_SECONDS = 45
 # ---------------------------------------------------------------------------
 
 
-def run_preflight_checks() -> None:
+def run_preflight_checks(*, starting_server: bool = True) -> None:
     """Verify required environment variables before starting."""
     missing = [var for var in REQUIRED_ENV_VARS if not os.getenv(var)]
     if missing:
@@ -72,7 +79,8 @@ def run_preflight_checks() -> None:
         print("Copy the https:// URL into your .env file")
         sys.exit(1)
 
-    print("Pre-flight checks passed. Starting server...")
+    if starting_server:
+        print("Pre-flight checks passed. Starting server...")
 
 
 def print_startup_banner(scenario_ids: list[int]) -> None:
@@ -196,6 +204,35 @@ def parse_arguments() -> argparse.Namespace:
         help="Run all 25 scenarios in order",
     )
     parser.add_argument(
+        "--submission",
+        action="store_true",
+        help=(
+            "Run the 10 curated submission scenarios "
+            f"({', '.join(str(sid) for sid in SUBMISSION_SCENARIO_IDS)}), "
+            "auto-promoting each quality call"
+        ),
+    )
+    parser.add_argument(
+        "--curate-submission",
+        action="store_true",
+        help="Pick the best 10 quality calls from recordings/ into submission_recordings/",
+    )
+    parser.add_argument(
+        "--curate-dry-run",
+        action="store_true",
+        help="Show which calls would be curated without writing submission_recordings/",
+    )
+    parser.add_argument(
+        "--promote",
+        metavar="FOLDER",
+        help="Promote an existing recordings/ folder into submission_recordings/",
+    )
+    parser.add_argument(
+        "--submission-status",
+        action="store_true",
+        help="Show submission progress and exit",
+    )
+    parser.add_argument(
         "--scenario",
         nargs="+",
         type=int,
@@ -207,6 +244,16 @@ def parse_arguments() -> argparse.Namespace:
 
 def resolve_scenario_ids(args: argparse.Namespace) -> list[int]:
     """Determine which scenario IDs to run from CLI args."""
+    if args.submission:
+        from submission import get_submitted_scenario_ids
+
+        submitted = get_submitted_scenario_ids()
+        return [
+            scenario_id
+            for scenario_id in SUBMISSION_SCENARIO_IDS
+            if scenario_id not in submitted
+        ]
+
     if args.all:
         return [scenario["id"] for scenario in SCENARIOS]
 
@@ -221,7 +268,7 @@ def resolve_scenario_ids(args: argparse.Namespace) -> list[int]:
                 sys.exit(1)
         return ids
 
-    print("ERROR: Specify --scenario ID [ID ...], --all, or --list")
+    print("ERROR: Specify --scenario ID [ID ...], --submission, --all, or --list")
     sys.exit(1)
 
 
@@ -230,7 +277,7 @@ def resolve_scenario_ids(args: argparse.Namespace) -> list[int]:
 # ---------------------------------------------------------------------------
 
 
-def run_single_scenario(client: Client, scenario: dict) -> dict:
+def run_single_scenario(client: Client, scenario: dict, *, auto_promote: bool = False) -> dict:
     """
     Run one scenario end-to-end.
 
@@ -300,6 +347,13 @@ def run_single_scenario(client: Client, scenario: dict) -> dict:
             f"Scenario {scenario_id} complete — {result['duration']}, "
             f"{issues_label}, saved to {result['folder']}"
         )
+
+        promoted = None
+        if auto_promote:
+            promoted = promote_call(recorder.get_call_folder(), scenario)
+        if promoted:
+            result["submission_folder"] = os.path.basename(promoted)
+            print(f"  → Promoted to submission: {result['submission_folder']}")
 
     except Exception as exc:
         logger.error(
@@ -393,14 +447,39 @@ def print_summary_table(results: list[dict]) -> None:
 
 
 def main() -> None:
-    run_preflight_checks()
-
     args = parse_arguments()
+
     if args.list:
         print_scenario_list()
         return
 
+    if args.submission_status:
+        print_submission_status()
+        return
+
+    if args.curate_submission or args.curate_dry_run:
+        curate_submission(dry_run=args.curate_dry_run)
+        print_submission_status()
+        return
+
+    if args.promote:
+        if not args.scenario or len(args.scenario) != 1:
+            print("ERROR: --promote requires exactly one --scenario ID")
+            sys.exit(1)
+        scenario = get_scenario(args.scenario[0])
+        promote_existing_call(args.promote, scenario)
+        print_submission_status()
+        return
+
+    run_preflight_checks()
+
     scenario_ids = resolve_scenario_ids(args)
+    if not scenario_ids:
+        print("All submission scenarios are already complete.")
+        print_submission_status()
+        return
+
+    print_submission_status()
     print_startup_banner(scenario_ids)
 
     server_thread = threading.Thread(target=start_server, daemon=True)
@@ -414,15 +493,27 @@ def main() -> None:
     )
 
     results: list[dict] = []
+    auto_promote = bool(args.submission)
     for index, scenario_id in enumerate(scenario_ids):
         scenario = get_scenario(scenario_id)
-        result = run_single_scenario(client, scenario)
+        result = run_single_scenario(client, scenario, auto_promote=auto_promote)
         results.append(result)
 
         if index < len(scenario_ids) - 1:
             wait_between_calls()
 
     print_summary_table(results)
+
+    if args.all:
+        findings_by_folder = {
+            row["folder"]: row["findings_count"]
+            for row in results
+            if row.get("folder") and row["folder"] != "—"
+        }
+        print("All scenarios complete — curating the best 10 calls for submission...")
+        curate_submission(findings_by_folder=findings_by_folder)
+
+    print_submission_status()
 
 
 if __name__ == "__main__":

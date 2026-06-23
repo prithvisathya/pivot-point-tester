@@ -1,0 +1,62 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 5
+Patient Name: Derek Thompson
+Date of Birth: February 2 1968
+Goal: Cancel a Thursday 11:15 AM appointment with Dr. Hauser
+Call Date: 2026-06-23 10:51:42
+Recording: call.mp3
+================================================
+
+[00:00:19] [AGENT]: This call may be recorded for quality and training purposes. Para Español, oprima el 2. Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with Maria?
+
+[00:00:22] [PATIENT BOT]: Hi, sorry, I’m actually calling about my appointment this Thursday.
+
+[00:00:22] [PATIENT BOT]: Sorry, no, this is Derek Thompson. I’m calling to cancel my appointment this Thursday. I’m so sorry, I’m in a bit of a hurry.
+
+[00:00:41] [AGENT]: No problem. Please provide your full name and date of birth.
+
+[00:00:41] [PATIENT BOT]: Let me give you my details so you can find the right appointment.
+
+[00:00:41] [PATIENT BOT]: Derek Thompson, and my date of birth is February 2, 1968.
+
+[00:01:07] [AGENT]: Just to confirm, I have your name as Derek Thompson and your date of birth as February 2nd, 1968? Is that correct? If so, please spell your first and last name for me.
+
+[00:01:08] [PATIENT BOT]: Yes, that’s correct. First name Derek, D E R E K. Last name Thompson, T H O M P S O N.
+
+[00:01:31] [AGENT]: Would you like to use your phone number to help look up your record? If so, please tell me the number you have on file with us. If you're not sure, just let me know.
+
+[00:01:33] [PATIENT BOT]: I’m not sure which number you have on file, sorry. I just need to cancel the appointment for this Thursday.
+
+[00:01:49] [AGENT]: No worries. Could you please confirm your first and last name and your date of birth one more time? Just spell them out for me.
+
+[00:01:50] [PATIENT BOT]: Derek Thompson, date of birth February 2, 1968.
+
+[00:02:02] [AGENT]: Could you please spell your first and last name for me one more time?
+
+[00:02:04] [PATIENT BOT]: Derek Thompson. First name D E R E K. Last name T H O M P S O N.
+
+[00:02:16] [PATIENT BOT]: Derek Thompson. First name D E R
+
+[00:02:17] [AGENT]: 
+
+[00:02:18] [AGENT]: I have your phone number.
+
+[00:02:21] [PATIENT BOT]: Okay, thanks for pulling that up.
+
+[00:02:21] [PATIENT BOT]: Yes, that’s me, thanks. I need to cancel my appointment this Thursday at 11:15 AM with Dr. Hauser.
+
+[00:02:41] [AGENT]: I can't proceed further right now, but I'll make sure our clinic support team follows up with you. Please stay on the line while I document your request.
+
+[00:02:42] [PATIENT BOT]: Alright, please go ahead and document it.
+
+[00:02:42] [PATIENT BOT]: Okay, thanks. I appreciate you noting the request. I’m sorry again, I just have to run.
+
+[00:02:47] [PATIENT BOT]: Okay, thanks for transferring me.
+
+[00:02:48] [AGENT]: Connecting you to a representative. Please wait.
+
+[00:02:54] [PATIENT BOT]: Thank you so much, sorry again, goodbye
+
+[00:02:54] [AGENT]: Hello, you've reached the pretty good AI test line. Goodbye

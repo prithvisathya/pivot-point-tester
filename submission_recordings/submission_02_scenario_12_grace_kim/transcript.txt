@@ -1,0 +1,38 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 12
+Patient Name: Grace Kim
+Date of Birth: April 17 2001
+Goal: Eventually schedule a new patient appointment, but start very vague
+Call Date: 2026-06-23 11:14:36
+Recording: call.mp3
+================================================
+
+[00:00:12] [AGENT]: This call may be recorded for quality and training purposes.
+
+[00:00:18] [AGENT]: Thanks for calling Pivot Point Orthopedics. Part of Pretty Good AI. Am I speaking with Maria?
+
+[00:00:21] [PATIENT BOT]: Hi, um, I am not totally sure who I should be calling but I have been having some knee problems and my regular doctor told me I should call someone. Sorry, I’m not Maria.
+
+[00:00:40] [AGENT]: No problem at all. Are you calling for yourself or for someone else?
+
+[00:00:43] [PATIENT BOT]: Uh, for myself, I think. Sorry, I’m just, um, a little unsure how this works. I guess I’m trying to figure out if this is the right place for, like, knee problems. Is this the right place for that?
+
+[00:01:09] [AGENT]: Yes, Pivot Point Orthopedics helps with knee problems. To get started, can you please tell me your full name and date of birth?
+
+[00:01:11] [PATIENT BOT]: Oh, okay, um, it’s Grace Kim, and my date of birth is April 17, 2001. Sorry, I’m just a little nervous.
+
+[00:01:40] [AGENT]: Thank you, Grace. One moment while I look up your information. That's completely understandable. Just to make sure I have everything right, could you please spell your first and last name for me? And I have your date of birth as April 17, 2001. Is that correct?
+
+[00:01:43] [PATIENT BOT]: Sure, let me spell that out for you.
+
+[00:01:43] [PATIENT BOT]: Um, yeah, it’s Grace Kim. First name G-R-A-C-E, last name K-I-M. And yes, April 17, 2001 is correct.
+
+[00:02:14] [AGENT]: Would you like to use your phone number to look up your record? If so, please tell me the number you have on file with us. If you're not sure, just confirm your first and last name and date of birth for me one more time.
+
+[00:02:17] [PATIENT BOT]: Uh, I’m not really sure I have a record yet, sorry. It’s Grace Kim, G-R-A-C-E K-I-M, and my date of birth is April 17, 2001. I think I probably need like a new patient consultation or something, if this is the right place.
+
+[00:02:55] [AGENT]: This is the right place for knee problems. I have your name as Grace Kim and your date of birth as April 17, 2001. Your phone number is 424-484-5086. Is all of that correct?
+
+[00:02:58] [PATIENT BOT]: Uh, I’m not sure that’s my number, sorry. I don’t want to confirm something if I’m unsure. Could you just use my name and date of birth to set me up? If it’s possible to schedule, um, a new patient consultation, I’d like the first available slot, I guess.

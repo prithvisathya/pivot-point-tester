@@ -1,0 +1,50 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 11
+Patient Name: Nicole Davis
+Date of Birth: June 30 1992
+Goal: Get office hours, ask about insurance, then schedule an appointment
+Call Date: 2026-06-23 11:10:35
+Recording: call.mp3
+================================================
+
+[00:00:19] [AGENT]: This call may be recorded for quality and training purposes. Para Español, oprima el dos. Thanks for calling Pivot Point Orthopedic, part of Pretty Good AI. Am I speaking with Maria?
+
+[00:00:20] [PATIENT BOT]: Hi, this is Nicole Davis. I have a few quick questions and then I would like to book an appointment if that is okay.
+
+[00:00:33] [AGENT]: Of course, Nicole. What questions can I help with first?
+
+[00:00:34] [PATIENT BOT]: First, what are your office hours?
+
+[00:00:53] [PATIENT BOT]: Thanks. Next, do you accept Blue Shield insurance?
+
+[00:00:53] [AGENT]: Our clinic is open Monday, Tuesday, and Thursday from 9 a.m. to 4 p.m., Wednesday from 12 p.m. to 7 p.m., and Friday from 9 a.m. to 12 p.m. What else can I answer for you?
+
+[00:01:10] [AGENT]: Yes, Pivot Point Orthopedics accepts most insurance plans, including Blue Shield. Would you like to ask anything else before we book your appointment?
+
+[00:01:11] [PATIENT BOT]: Okay, thanks for confirming that—let me go ahead and get the earliest appointment set up.
+
+[00:01:11] [PATIENT BOT]: Please schedule a new patient appointment for the first available slot. My date of birth is June 30, 1992 if you need it.
+
+[00:01:33] [AGENT]: Thanks, Nicole. I have your date of birth as June 30, 1992. Is that correct?
+
+[00:01:34] [PATIENT BOT]: Yes, that’s correct. What’s the first available appointment?
+
+[00:01:47] [AGENT]: Just to confirm, can you please spell your first and last name for me?
+
+[00:01:48] [PATIENT BOT]: Sure. Nicole is N I C O L E. Davis is D A V I S.
+
+[00:02:13] [AGENT]: Would you like to use your phone number to look up your record? If so, please tell me the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you prefer?
+
+[00:02:13] [PATIENT BOT]: Let’s use my name and date of birth to look me up, since I’m not sure what number you have. It’s Nicole Davis, born June 30, 1992.
+
+[00:02:39] [AGENT]: Thanks for confirming. I'm unable to verify your record in the system right now, so I can't schedule your appointment directly. I'll make sure our clinic support team follows up with you to get your appointment booked as soon as possible.
+
+[00:02:43] [PATIENT BOT]: Actually I had a couple more questions. I still need that first available appointment locked in. If the record can’t be verified, please connect me with someone who can create my chart and schedule it now, or at least tell me the earliest slot and how the support team will confirm it today.
+
+[00:03:05] [AGENT]: Connecting you to a representative. Please wait.
+
+[00:03:10] [AGENT]: Hello! You've reached the Pretty Good AI test line. Goodbye!
+
+[00:03:13] [PATIENT BOT]: It sounds like the line disconnected, and I still need that first available new patient appointment scheduled. Please have someone reconnect with me as soon as possible to finish booking it.

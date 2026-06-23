@@ -1,0 +1,76 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 2
+Patient Name: James Whitfield
+Date of Birth: July 4 1972
+Goal: Schedule a follow-up as a returning patient, request Dr. Hauser
+Call Date: 2026-06-23 10:40:30
+Recording: call.mp3
+================================================
+
+[00:00:18] [AGENT]: This call may be recorded for quality and training purposes.
+
+[00:00:20] [AGENT]: Thanks for calling to the point orthopedics part of pretty good a my speaking with Maria
+
+[00:00:20] [PATIENT BOT]: Oh, no, this is James Whitfield. I’ve been a patient there before and I’m calling to schedule a follow-up appointment.
+
+[00:00:36] [AGENT]: No problem. How can I help you today?
+
+[00:00:38] [PATIENT BOT]: I’d like to schedule a follow-up appointment, and I’d prefer to see Dr. Hauser again if possible.
+
+[00:00:55] [AGENT]: Can you please provide your full name and date of birth?
+
+[00:00:57] [PATIENT BOT]: Let me give you my details so you can find my chart.
+
+[00:00:57] [PATIENT BOT]: James Whitfield, and my date of birth is July 4, 1972.
+
+[00:01:12] [AGENT]: Thank you. Can you please provide your full name, including first and last?
+
+[00:01:13] [PATIENT BOT]: James Whitfield.
+
+[00:01:31] [AGENT]: Just to confirm, I have your name as James Whitfield and your date of birth as July 4th, 2020. Is that correct? If so, please spell your first and last name for me.
+
+[00:01:35] [PATIENT BOT]: Actually, my date of birth is July 4, 1972. First name James, J-A-M-E-S. Last name Whitfield, W-H-I-T-F-I-E-L-D.
+
+[00:01:44] [AGENT]: Thanks for clarifying.
+
+[00:01:46] [PATIENT BOT]: I’d like to see Dr. Hauser again, and I’m happy to take the first available appointment you have.
+
+[00:01:50] [AGENT]: Can you please...
+
+[00:01:51] [PATIENT BOT]: Yes, that time works for me, thank you. That is all I needed, thank you, goodbye
+
+[00:02:16] [AGENT]: before we finish. Would you like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure I can confirm your name and day of birth again.
+
+[00:02:18] [PATIENT BOT]: I’m not sure which number you have on file. You can confirm using my name, James Whitfield, and date of birth, July 4, 1972.
+
+[00:02:47] [AGENT]: Just to confirm, I have your name as James Whitfield, date of birth July 4, 1992, and phone number 144-484-5086.
+
+[00:02:48] [AGENT]: Is that correct?
+
+[00:02:51] [PATIENT BOT]: The name and date of birth are correct. I’m not sure about the phone number you have on file, so please use my name and date of birth to locate my record.
+
+[00:03:10] [AGENT]: I have your name as James Whitfield and your date of birth as July 4th, 1992, is that correct?
+
+[00:03:11] [PATIENT BOT]: The name is correct, but my date of birth is July 4, 1972, not 1992.
+
+[00:03:29] [AGENT]: I have your date of birth as July 4th, 1982, is that correct?
+
+[00:03:30] [PATIENT BOT]: No, my date of birth is July 4, 1972.
+
+[00:03:45] [AGENT]: Thank you. I have your date of birth as April 19th, 1972, is that correct?
+
+[00:03:48] [PATIENT BOT]: Let me just straighten out that date so your chart matches correctly.
+
+[00:03:48] [PATIENT BOT]: No. My date of birth is July 4, 1972. Month July, day 4, year 1972.
+
+[00:03:57] [AGENT]: Can you please confirm you're...
+
+[00:03:58] [PATIENT BOT]: My date of birth is July 4, 1972.
+
+[00:04:29] [AGENT]: Thanks for confirming your date of birth as July 4th, 1972. One moment while I get you scheduled with Dr. Hauser. Connecting you to a representative. Please wait.
+
+[00:04:34] [AGENT]: Hello, you've reached the Pretty Good AI test line. Goodbye.
+
+[00:04:35] [PATIENT BOT]: That is all I needed, thank you, goodbye
