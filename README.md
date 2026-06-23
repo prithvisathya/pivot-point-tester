@@ -154,6 +154,9 @@ After each call you will find:
 - `recordings/call_01/transcript.txt` — Full conversation transcript (local scratch)
 - `recordings/call_01/call.mp3` — Audio recording of the call (local scratch)
 - `submission_recordings/` — Curated calls that meet submission quality bar (committed to GitHub)
+  - `call.mp3` — **Full two-party call** downloaded from Twilio after each run (agent + patient bot)
+  - `patient_bot.mp3` — Simulated patient audio only (debug track from the media stream)
+  - `transcript.txt` — Both sides with `[AGENT]` and `[PATIENT BOT]` timestamps
 - `bug_report.md` — Auto-updated bug findings
 - `test_run.log` — Full debug log of the run
 

@@ -18,10 +18,12 @@ back to mulaw 8000hz and send it to Twilio, which plays it into the live
 phone call. Simultaneously, both sides of the conversation are captured: 
 OpenAI provides transcriptions of the agent's speech via Whisper, and 
 transcriptions of the bot's own speech via response audio transcript 
-events. All audio chunks and transcript lines are passed to recorder.py 
-which saves them as an mp3 file and a timestamped transcript after the 
-call ends. Once saved, analyzer.py scans the transcript for ten predefined 
-bug patterns and appends any findings to bug_report.md.
+events. All transcript lines are passed to recorder.py which saves a 
+timestamped transcript after the call ends. The full two-party phone 
+recording is downloaded from Twilio (record=True on outbound calls) and 
+saved as call.mp3; patient-bot-only audio from the media stream is kept 
+as patient_bot.mp3. Once saved, analyzer.py scans the transcript for ten 
+predefined bug patterns and appends any findings to bug_report.md.
 
 After all 25 scenarios run, submission.py scores every quality call 
 (duration, turn count, audio size, and bug findings) and copies only the 

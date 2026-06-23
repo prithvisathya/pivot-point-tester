@@ -360,10 +360,8 @@ async def media_stream(websocket: WebSocket) -> None:
             try:
                 if call_errored:
                     recorder.save_partial()
-                else:
-                    recorder.save()
             except Exception as exc:
-                logger.error("Recorder save failed: %s", exc, exc_info=True)
+                logger.error("Recorder partial save failed: %s", exc, exc_info=True)
 
         if call_complete_event is not None:
             call_complete_event.set()

@@ -29,6 +29,7 @@ from submission import (
     promote_call,
     promote_existing_call,
 )
+from twilio_recording import download_twilio_call_recording
 
 # ---------------------------------------------------------------------------
 # Environment and logging
@@ -312,6 +313,7 @@ def run_single_scenario(client: Client, scenario: dict, *, auto_promote: bool = 
         call_handler.call_complete_event = threading.Event()
 
         call_sid = trigger_twilio_call(client)
+        recorder.set_call_sid(call_sid)
         final_status = wait_for_call_completion(client, call_sid)
 
         if final_status != "completed":
@@ -322,6 +324,15 @@ def run_single_scenario(client: Client, scenario: dict, *, auto_promote: bool = 
         # Allow the WebSocket handler time to save recording/transcript.
         if call_handler.call_complete_event is not None:
             call_handler.call_complete_event.wait(timeout=CALL_COMPLETE_WAIT_SECONDS)
+
+        call_folder = recorder.get_call_folder()
+        full_mp3_path = os.path.join(call_folder, "call.mp3")
+        downloaded_full_call = download_twilio_call_recording(
+            client, call_sid, full_mp3_path
+        )
+        recorder.save(
+            full_call_mp3_path=full_mp3_path if downloaded_full_call else None
+        )
 
         elapsed = (datetime.now() - start_time).total_seconds()
         result["duration"] = format_duration(elapsed)

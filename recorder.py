@@ -9,7 +9,8 @@ import io
 import logging
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Optional
 
 from pydub import AudioSegment
 
@@ -29,7 +30,9 @@ AUDIO_SAMPLE_WIDTH = 2  # 16-bit PCM
 AUDIO_CHANNELS = 1
 TRANSCRIPT_FILENAME = "transcript.txt"
 AUDIO_MP3_FILENAME = "call.mp3"
+PATIENT_BOT_MP3_FILENAME = "patient_bot.mp3"
 AUDIO_WAV_FILENAME = "call.wav"
+CALL_SID_FILENAME = "call_sid.txt"
 
 HEADER_RULE = "=" * 48
 
@@ -117,7 +120,8 @@ class CallRecorder:
         """
         self.scenario = scenario
         self._transcript_lines: list[str] = []
-        self._audio_chunks: list[bytes] = []
+        self._patient_bot_chunks: list[bytes] = []
+        self._call_sid: Optional[str] = None
         self._start_time = datetime.now()
         self._call_start_monotonic = datetime.now()
 
@@ -153,29 +157,20 @@ class CallRecorder:
         print(line)
 
     def add_audio_chunk(self, audio_bytes: bytes) -> None:
-        """Append raw PCM16 24 kHz mono audio bytes to the internal buffer."""
+        """Append patient-bot PCM16 audio (OpenAI output only)."""
         if audio_bytes:
-            self._audio_chunks.append(audio_bytes)
+            self._patient_bot_chunks.append(audio_bytes)
+
+    def set_call_sid(self, call_sid: str) -> None:
+        """Store Twilio call SID for recording download and transcript metadata."""
+        self._call_sid = call_sid
+        sid_path = os.path.join(self._call_folder, CALL_SID_FILENAME)
+        with open(sid_path, "w", encoding="utf-8") as sid_file:
+            sid_file.write(call_sid)
 
     def get_call_folder(self) -> str:
         """Return the path to this call's folder."""
         return self._call_folder
-
-    def save(self) -> str:
-        """
-        Write transcript.txt and call.mp3 (or call.wav fallback).
-
-        Returns the folder path where files were saved.
-        """
-        return self._write_outputs(partial=False)
-
-    def save_partial(self) -> str:
-        """
-        Same as save(), but marks the transcript as a partial/unexpected save.
-
-        Used when a call drops or errors out before completing normally.
-        """
-        return self._write_outputs(partial=True)
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -198,8 +193,12 @@ class CallRecorder:
             f"Date of Birth: {patient_dob}",
             f"Goal: {scenario_goal}",
             f"Call Date: {call_date}",
-            "Recording: call.mp3",
+            f"Recording: {AUDIO_MP3_FILENAME} (full two-party call via Twilio)",
+            f"Patient bot track: {PATIENT_BOT_MP3_FILENAME} (simulated patient audio only)",
         ]
+
+        if self._call_sid:
+            lines.append(f"Twilio Call SID: {self._call_sid}")
 
         if partial:
             lines.append("Status: PARTIAL SAVE - call ended unexpectedly")
@@ -225,17 +224,45 @@ class CallRecorder:
 
         logger.info("Transcript saved → %s", transcript_path)
 
-    def _save_audio(self) -> str:
-        """
-        Combine audio chunks and save as MP3, falling back to WAV.
-
-        Returns the filename used ("call.mp3" or "call.wav").
-        """
-        if not self._audio_chunks:
-            logger.warning("No audio chunks to save for %s", self._call_folder)
+    def _save_patient_bot_audio(self) -> str:
+        """Save patient-bot-only audio from the OpenAI stream."""
+        if not self._patient_bot_chunks:
+            logger.warning("No patient-bot audio chunks for %s", self._call_folder)
             return ""
 
-        combined = b"".join(self._audio_chunks)
+        combined = b"".join(self._patient_bot_chunks)
+        audio = AudioSegment.from_raw(
+            io.BytesIO(combined),
+            sample_width=AUDIO_SAMPLE_WIDTH,
+            frame_rate=AUDIO_SAMPLE_RATE,
+            channels=AUDIO_CHANNELS,
+        )
+
+        mp3_path = os.path.join(self._call_folder, PATIENT_BOT_MP3_FILENAME)
+        try:
+            audio.export(mp3_path, format="mp3")
+            logger.info("Patient-bot audio saved → %s", mp3_path)
+            return PATIENT_BOT_MP3_FILENAME
+        except Exception as exc:
+            logger.warning("Patient-bot MP3 export failed: %s", exc)
+            return ""
+
+    def _save_audio(self, full_call_mp3_path: Optional[str] = None) -> str:
+        """
+        Save call audio files.
+
+        Prefers Twilio's full-call MP3 (both parties). Falls back to patient-bot
+        stream audio if the Twilio download is unavailable.
+        """
+        self._save_patient_bot_audio()
+
+        if full_call_mp3_path and os.path.isfile(full_call_mp3_path):
+            return AUDIO_MP3_FILENAME
+
+        if not self._patient_bot_chunks:
+            return ""
+
+        combined = b"".join(self._patient_bot_chunks)
         audio = AudioSegment.from_raw(
             io.BytesIO(combined),
             sample_width=AUDIO_SAMPLE_WIDTH,
@@ -246,12 +273,13 @@ class CallRecorder:
         mp3_path = os.path.join(self._call_folder, AUDIO_MP3_FILENAME)
         try:
             audio.export(mp3_path, format="mp3")
-            logger.info("Audio saved as MP3 → %s", mp3_path)
+            logger.warning(
+                "Twilio recording unavailable — %s contains patient-bot audio only",
+                AUDIO_MP3_FILENAME,
+            )
             return AUDIO_MP3_FILENAME
         except Exception as exc:
-            logger.warning(
-                "MP3 export failed (%s) — falling back to WAV", exc
-            )
+            logger.warning("MP3 export failed (%s) — falling back to WAV", exc)
 
         wav_path = os.path.join(self._call_folder, AUDIO_WAV_FILENAME)
         try:
@@ -262,20 +290,18 @@ class CallRecorder:
             logger.error("WAV export also failed: %s", exc, exc_info=True)
             return ""
 
-    def _write_outputs(self, partial: bool) -> str:
+    def _write_outputs(self, partial: bool, full_call_mp3_path: Optional[str] = None) -> str:
         """Write transcript and audio; never crash if audio saving fails."""
         label = "partial" if partial else "complete"
         logger.info("Saving %s recording for %s", label, self._call_folder)
 
-        # Transcript is always attempted first.
         try:
             self._save_transcript(partial)
         except Exception as exc:
             logger.error("Failed to save transcript: %s", exc, exc_info=True)
 
-        # Audio failure must not prevent returning the folder path.
         try:
-            audio_file = self._save_audio()
+            audio_file = self._save_audio(full_call_mp3_path)
             if audio_file:
                 logger.info("Recording format used: %s", audio_file)
         except Exception as exc:
@@ -283,3 +309,11 @@ class CallRecorder:
 
         logger.info("Recording saved successfully → %s", self._call_folder)
         return self._call_folder
+
+    def save(self, full_call_mp3_path: Optional[str] = None) -> str:
+        """Write transcript.txt and call.mp3 (or call.wav fallback)."""
+        return self._write_outputs(partial=False, full_call_mp3_path=full_call_mp3_path)
+
+    def save_partial(self, full_call_mp3_path: Optional[str] = None) -> str:
+        """Same as save(), but marks the transcript as a partial/unexpected save."""
+        return self._write_outputs(partial=True, full_call_mp3_path=full_call_mp3_path)
