@@ -1,5 +1,5 @@
 """
-OpenAI Realtime API connection helpers.
+OpenAI Realtime API connection helpers (GA endpoint).
 
 Uses raw websockets (not the OpenAI Python SDK) for bidirectional audio streaming.
 Handshake flow:
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Connection settings
 # ---------------------------------------------------------------------------
 
-OPENAI_REALTIME_MODEL = "gpt-4o-realtime-preview-2024-12-17"
+OPENAI_REALTIME_MODEL = "gpt-4o-realtime-preview"
 
 OPENAI_REALTIME_URL = (
     f"wss://api.openai.com/v1/realtime?model={OPENAI_REALTIME_MODEL}"
@@ -56,18 +56,17 @@ class RealtimeHandshakeError(Exception):
 
 
 def build_connection_headers(api_key: str) -> dict[str, str]:
-    """Return auth headers for the Realtime WebSocket connection."""
+    """Return auth headers for the GA Realtime WebSocket connection."""
     return {
         "Authorization": f"Bearer {api_key}",
-        "OpenAI-Beta": "realtime=v1",
     }
 
 
 def build_session_update(instructions: str) -> dict[str, Any]:
     """
-    Build session.update payload sent after session.created is received.
+    Build session.update payload for the GA Realtime API.
 
-    Field order and names match the current Realtime preview API shape.
+    Sent after session.created is received during handshake.
     """
     return {
         "type": EVENT_SESSION_UPDATE,
@@ -102,9 +101,10 @@ def build_input_audio_append(audio_b64: str) -> dict[str, str]:
 
 async def connect(api_key: str):
     """
-    Open a raw WebSocket connection to OpenAI Realtime.
+    Open a raw WebSocket connection to the OpenAI Realtime GA API.
 
     Uses the websockets library with extra_headers (not the OpenAI SDK).
+    No OpenAI-Beta header — beta Realtime API is no longer supported.
     """
     logger.info("Connecting to OpenAI Realtime: %s", OPENAI_REALTIME_URL)
     headers = build_connection_headers(api_key)

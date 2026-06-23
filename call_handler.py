@@ -1,5 +1,5 @@
 """
-FastAPI bridge between Twilio Media Streams and the OpenAI Realtime API.
+FastAPI bridge between Twilio Media Streams and the OpenAI Realtime GA API.
 
 Receives phone audio from Twilio, converts it for OpenAI, plays the simulated
 patient's responses back to the call, and captures transcript/audio for analysis.
