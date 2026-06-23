@@ -23,6 +23,10 @@ which saves them as an mp3 file and a timestamped transcript after the
 call ends. Once saved, analyzer.py scans the transcript for ten predefined 
 bug patterns and appends any findings to bug_report.md.
 
+After all 25 scenarios run, submission.py scores every quality call 
+(duration, turn count, audio size, and bug findings) and copies only the 
+top 10 into submission_recordings/ for the GitHub submission.
+
 ## Why These Design Choices
 
 OpenAI Realtime API was chosen as the patient voice brain because it 

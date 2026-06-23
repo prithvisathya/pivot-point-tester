@@ -1,0 +1,56 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 17
+Patient Name: Harold Simmons
+Date of Birth: January 22 1938
+Goal: Schedule an appointment while asking for repetition and pausing often
+Call Date: 2026-06-23 11:39:26
+Recording: call.mp3
+================================================
+
+[00:00:20] [AGENT]: This call may be recorded for quality and training purposes. Para Español, oprima el 2. Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with Maria?
+
+[00:00:24] [PATIENT BOT]: Let me speak up and slow down for you.
+
+[00:00:28] [AGENT]: Thank you, Maria. How can I help you today?
+
+[00:00:39] [PATIENT BOT]: Okay... let me speak slowly so I don’t miss anything.
+
+[00:00:39] [PATIENT BOT]: No... this is Harold Simmons.
+
+Speak up please.
+
+I was calling to schedule a new patient... appointment.
+
+I am sorry, could you say that again?
+
+My date of birth is January twenty-second, nineteen thirty-eight... and I... I need the next available time, preferably in the morning.
+
+I am sorry, could you say that again?
+
+Speak up please.
+
+[00:01:18] [AGENT]: I have your name as Harold Simmons and your date of birth as January 22nd, 1938. Could you please spell your first and last name for me?
+
+[00:01:23] [PATIENT BOT]: H...a...r...o...l...d.
+
+S...i...m...m...o...n...s.
+
+I am sorry, could you say that again?
+
+[00:01:54] [AGENT]: I have your phone number as 424-484-5086 and your date of birth as January 22nd, 1938. Is that correct?
+
+[00:01:56] [PATIENT BOT]: Yes... that sounds right.
+
+I... I was hoping for a morning slot if possible, maybe next week, but... if you only have something later I can... I can manage.
+
+[00:02:14] [PATIENT BOT]: Alright...
+
+[00:02:14] [AGENT]: Connecting you to a representative. Please wait.
+
+[00:02:20] [AGENT]: Hello, you've reached the pretty good AI test line. Goodbye
+
+[00:02:24] [PATIENT BOT]: Oh... well... I thought I was being connected, but... it seems the line ended.
+
+I’ll... call back to finish scheduling. All right then... thank you... goodbye

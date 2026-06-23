@@ -110,22 +110,32 @@ Run multiple specific scenarios:
 python main.py --scenario 1 3 5
 ```
 
-Run all 25 scenarios:
-```bash
-python main.py --all
-```
-
 Run all 25 scenarios (auto-picks the best 10 for submission when finished):
 ```bash
 python main.py --all
 ```
 
-Preview which 10 calls would be selected without writing files:
+### How the top 10 submission calls are chosen
+
+Every scenario run is saved under `recordings/`. After `--all` finishes,
+`submission.py` ranks calls that pass a quality gate (complete MP3,
+≥60 seconds, ≥4 speaker turns, full transcript). Scoring:
+
+- **+1** per second of conversation
+- **+5** per speaker turn
+- **+1** per KB of audio
+- **+25** per automated bug finding
+- **+15** bonus for core scenario types (scheduling, cancel, refill, etc.)
+
+The best call per scenario ID is kept, then the **top 10 scores** are
+copied into `submission_recordings/`. Preview rankings without writing files:
+
 ```bash
 python main.py --curate-dry-run
 ```
 
-Manually re-curate the best 10 from existing recordings/:
+Manually re-curate from existing recordings/:
+
 ```bash
 python main.py --curate-submission
 ```
@@ -148,9 +158,9 @@ After each call you will find:
 - `test_run.log` — Full debug log of the run
 
 Quality calls are saved under `recordings/` during test runs. After `--all`,
-the best 10 are copied into `submission_recordings/` based on conversation
-length, turn count, and bug findings. The challenge requires **10 submission
-calls** in the repo.
+the best 10 are scored and copied into `submission_recordings/` (see
+**How the top 10 submission calls are chosen** above). The challenge
+requires **10 submission calls** in the repo.
 
 Check progress:
 ```bash

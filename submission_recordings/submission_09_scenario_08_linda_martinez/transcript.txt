@@ -1,0 +1,38 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 8
+Patient Name: Linda Martinez
+Date of Birth: August 8 1965
+Goal: Ask a series of questions about office hours, no scheduling
+Call Date: 2026-06-23 11:01:59
+Recording: call.mp3
+================================================
+
+[00:00:20] [AGENT]: This call may be recorded for quality and training purposes. Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with Maria?
+
+[00:00:22] [PATIENT BOT]: Oh, no, dear, this is Linda Martinez. I’m, ah, calling to ask about your office hours, and I like to be prepared, so I’m writing this down. Could you tell me what your office hours are?
+
+[00:00:54] [PATIENT BOT]: Alright, thank you. I’m writing that down. Are you, ah, open on Saturdays?
+
+[00:00:54] [AGENT]: Of course. Pivot Point Orthopedics is open from 9 a.m. to 4 p.m. on Monday, Tuesday, and Thursday, from 12 p.m. to 7 p.m. on Wednesday, and from 9 a.m. to 12 p.m. on Friday. Let me know if you need anything else.
+
+[00:01:12] [AGENT]: We are not open on Saturdays. The clinic is open Monday through Friday only. If you need to schedule an appointment or have other questions, just let me know.
+
+[00:01:14] [PATIENT BOT]: Mm, alright, thank you. I’m just, ah, making sure I have it all straight. What about Sundays?
+
+[00:01:33] [PATIENT BOT]: Okay, thank you for that. And, ah, what time do you close on Fridays?
+
+[00:01:35] [AGENT]: We are closed on Sundays as well. The clinic is open only on weekdays, Monday through Friday.
+
+[00:01:43] [AGENT]: We close at 12 p.m. on Fridays.
+
+[00:01:45] [PATIENT BOT]: Alright, I’m writing that down too. Is there an after-hours line if I have an urgent question?
+
+[00:02:09] [AGENT]: We do not have a dedicated after-hours line. If you have an urgent medical issue outside of clinic hours, please call 911 or go to the nearest emergency room. For non-urgent questions, you can call during our regular business hours.
+
+[00:02:09] [PATIENT BOT]: Okay I think I have everything I need, thank you dear, goodbye
+
+[00:02:20] [PATIENT BOT]: Goodbye, dear.
+
+[00:02:21] [AGENT]: You're welcome. Have a great day.

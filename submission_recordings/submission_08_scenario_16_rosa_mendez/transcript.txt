@@ -1,0 +1,48 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 16
+Patient Name: Rosa Mendez
+Date of Birth: February 14 1978
+Goal: Schedule an appointment while naturally mixing in Spanish words
+Call Date: 2026-06-23 11:36:46
+Recording: call.mp3
+================================================
+
+[00:00:19] [AGENT]: This call may be recorded for quality and training purposes. Para Español, oprima el 2. Thanks for calling Pivot Point Orthopedics, partner of Pretty Good AI. Am I speaking with Maria?
+
+[00:00:25] [PATIENT BOT]: Hi, I’m actually Rosa Mendez, not Maria. Perdón—just want to make sure you have the right chart. My date of birth is February 14, 1978.
+
+I’m calling as a new patient. Mi doctor said I should get my la rodilla checked, the knee. Do you have someone who speaks Spanish? Un intérprete maybe? If not, está bien, I can do mostly English—just sometimes I’m searching for, como se dice, the right word.
+
+If we can schedule, I’ll take the first available appointment, por favor. Muchas gracias, thank you very much, goodbye
+
+[00:01:10] [PATIENT BOT]: Okay, gracias,
+
+[00:01:13] [AGENT]: We do have Spanish-speaking support available. I can transfer you now to a Spanish-speaking agent who can help schedule your appointment and answer your questions. One moment, please.
+
+[00:01:15] [AGENT]: Would you like to connect to a Spanish-speaking agent?
+
+[00:01:16] [PATIENT BOT]: Yes, please, that would be great. Un momento, and thank you for transferring me.
+
+[00:01:24] [AGENT]: Esta llamada puede ser grabada con fines de calidad y capacitación.
+
+[00:01:27] [AGENT]: ¿Cómo le puedo ayudar hoy?
+
+[00:01:33] [PATIENT BOT]: Claro, déjeme pensar cómo explicarlo y buscamos una cita.
+
+[00:01:33] [PATIENT BOT]: Hola, thanks for taking my call. I’m a new patient, Rosa Mendez, fecha de nacimiento February 14, 1978, and I need to schedule an appointment for la rodilla, my knee.
+
+Could you offer the first available slot, por favor? I’ll take the earliest one you have.
+
+Muchas gracias, thank you very much, goodbye
+
+[00:01:45] [AGENT]: Connecting you to a representative.
+
+[00:01:47] [AGENT]: Please wait
+
+[00:01:48] [PATIENT BOT]: Claro, I’ll wait.
+
+[00:01:53] [AGENT]: Hello. You've reached the Pretty Good AI test line. Goodbye.
+
+[00:01:54] [PATIENT BOT]: Oh, okay… perdón, I guess the call ended. Muchas gracias, thank you very much, goodbye

@@ -1,0 +1,50 @@
+================================================
+PIVOT POINT ORTHOPEDICS - AI AGENT TEST CALL
+================================================
+Scenario ID: 6
+Patient Name: Aisha Johnson
+Date of Birth: September 1 1995
+Goal: Move a Thursday 11:15 AM appointment to the following Monday
+Call Date: 2026-06-23 10:55:17
+Recording: call.mp3
+================================================
+
+[00:00:13] [AGENT]: This call may be recorded for quality and training purposes.
+
+[00:00:19] [AGENT]: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with Maria?
+
+[00:00:25] [PATIENT BOT]: Oh, hi, no, this is Aisha Johnson. I’m calling because I, um, need to reschedule my Thursday appointment at 11:15. I’m hoping to move it to Monday if possible. If Monday’s full, Tuesday would work. I’m just juggling a lot that day, so I really need to shift it.
+
+[00:00:46] [PATIENT BOT]: Yeah, of course. It’s September 1, 1995.
+
+[00:00:46] [AGENT]: Can you please provide your date of birth?
+
+[00:01:07] [AGENT]: Just to confirm, I have your name as Asia Johnson and your date of birth as September 1st, 1995. Is that correct? If so, could you please spell your first and last name for me?
+
+[00:01:08] [PATIENT BOT]: Yes, that’s correct. My first name is spelled A-I-S-H-A, and my last name is J-O-H-N-S-O-N.
+
+[00:01:33] [AGENT]: Would you like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure I can confirm your name and date of birth again, which would you prefer?
+
+[00:01:34] [PATIENT BOT]: I’d prefer you confirm with my name and date of birth again, just to be safe.
+
+[00:01:48] [AGENT]: No problem. Please spell your first and last name for me one more time and confirm your date of birth.
+
+[00:01:51] [PATIENT BOT]: Okay, let me repeat that clearly for you.
+
+[00:01:51] [PATIENT BOT]: My first name is A-I-S-H-A. My last name is J-O-H-N-S-O-N. And my date of birth is September 1, 1995.
+
+[00:02:23] [AGENT]: I have your first name is Ayesha, last name is Johnson, date of birth is September 1st, 1995, and your phone number is 424-484-5086. Is all of that correct?
+
+[00:02:26] [PATIENT BOT]: Yes, that’s all correct. And again, I’m really hoping we can move my Thursday 11:15 to Monday if you have something. If not, Tuesday is okay.
+
+[00:02:50] [AGENT]: I can't proceed further right now, but I can make sure our clinic support team follows up with you. Please hold while I document your request for the team.
+
+[00:02:52] [PATIENT BOT]: Okay, thank you. I really appreciate you noting that I
+
+[00:02:56] [PATIENT BOT]: That works, thank you
+
+[00:02:56] [AGENT]: and I can you to a representative. Please wait.
+
+[00:03:01] [AGENT]: Hello, you've reached the pretty good AI test line. Goodbye
+
+[00:03:02] [PATIENT BOT]: That works, thank you so much, goodbye
