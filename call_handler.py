@@ -19,6 +19,20 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, Response
 
+from openai_realtime import (
+    EVENT_ERROR,
+    EVENT_INPUT_AUDIO_TRANSCRIPTION_COMPLETED,
+    EVENT_RESPONSE_AUDIO_DELTA,
+    EVENT_RESPONSE_AUDIO_TRANSCRIPT_DELTA,
+    EVENT_RESPONSE_AUDIO_TRANSCRIPT_DONE,
+    EVENT_SESSION_UPDATED,
+    EVENT_SPEECH_STARTED,
+    EVENT_SPEECH_STOPPED,
+    build_input_audio_append,
+    configure_session,
+    connect as connect_openai,
+)
+
 load_dotenv()
 
 # ---------------------------------------------------------------------------
@@ -56,10 +70,7 @@ on_call_complete: Optional[Callable[..., Any]] = None
 TWILIO_SAMPLE_RATE = 8000
 OPENAI_SAMPLE_RATE = 24000
 GREETING_DELAY_SECONDS = 2
-
-OPENAI_REALTIME_URL = (
-    "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"
-)
+SESSION_READY_TIMEOUT_SECONDS = 30
 
 
 # ---------------------------------------------------------------------------
@@ -109,35 +120,6 @@ class AudioConverter:
         )
         mulaw_bytes = audioop.lin2ulaw(pcm16_8k, 2)
         return base64.b64encode(mulaw_bytes).decode("utf-8"), pcm16_24k
-
-
-# ---------------------------------------------------------------------------
-# OpenAI session configuration
-# ---------------------------------------------------------------------------
-
-
-def build_session_update(instructions: str) -> dict:
-    """Build the session.update payload sent right after connecting to OpenAI."""
-    return {
-        "type": "session.update",
-        "session": {
-            "turn_detection": {
-                "type": "server_vad",
-                "threshold": 0.5,
-                "prefix_padding_ms": 300,
-                "silence_duration_ms": 800,
-            },
-            "input_audio_format": "pcm16",
-            "output_audio_format": "pcm16",
-            "input_audio_transcription": {
-                "model": "whisper-1",
-            },
-            "voice": "alloy",
-            "instructions": instructions,
-            "modalities": ["text", "audio"],
-            "temperature": 0.8,
-        },
-    }
 
 
 # ---------------------------------------------------------------------------
@@ -216,7 +198,8 @@ async def media_stream(websocket: WebSocket) -> None:
     converter = AudioConverter()
     call_errored = False
 
-    # Block Twilio→OpenAI audio until the agent finishes its greeting.
+    # Block Twilio→OpenAI audio until session is ready and greeting delay passes.
+    session_ready = asyncio.Event()
     greeting_ready = asyncio.Event()
 
     openai_api_key = os.getenv("OPENAI_API_KEY", "")
@@ -234,25 +217,31 @@ async def media_stream(websocket: WebSocket) -> None:
 
     try:
         # --- Connect to OpenAI Realtime -----------------------------------
-        logger.info("Connecting to OpenAI Realtime API...")
-        openai_ws = await websockets.connect(
-            OPENAI_REALTIME_URL,
-            additional_headers={
-                "Authorization": f"Bearer {openai_api_key}",
-                "OpenAI-Beta": "realtime=v1",
-            },
-        )
-        logger.info("OpenAI connected")
+        openai_ws = await connect_openai(openai_api_key)
+        await configure_session(openai_ws, instructions)
 
-        # Configure the session with the scenario's system prompt.
-        await openai_ws.send(json.dumps(build_session_update(instructions)))
-
-        # Start the 2-second greeting delay in the background.
         async def enable_audio_after_greeting() -> None:
+            """Wait for session.updated, then pause so the agent can greet first."""
+            nonlocal call_errored
+            try:
+                await asyncio.wait_for(
+                    session_ready.wait(),
+                    timeout=SESSION_READY_TIMEOUT_SECONDS,
+                )
+            except asyncio.TimeoutError:
+                call_errored = True
+                logger.error(
+                    "Timed out waiting for session.updated from OpenAI "
+                    "(%ss)",
+                    SESSION_READY_TIMEOUT_SECONDS,
+                )
+                return
+
             await asyncio.sleep(GREETING_DELAY_SECONDS)
             greeting_ready.set()
             logger.info(
-                "Greeting delay complete (%ss) — forwarding audio to OpenAI",
+                "Session ready and greeting delay complete (%ss) — "
+                "forwarding audio to OpenAI",
                 GREETING_DELAY_SECONDS,
             )
 
@@ -277,19 +266,15 @@ async def media_stream(websocket: WebSocket) -> None:
                     if not payload:
                         continue
 
-                    # Wait for greeting delay before sending agent audio to OpenAI.
+                    # Wait for session.updated + greeting delay before sending audio.
+                    await session_ready.wait()
                     await greeting_ready.wait()
 
                     openai_audio_b64, pcm_bytes = converter.twilio_to_openai(payload)
                     audio_chunks.append(pcm_bytes)
 
                     await openai_ws.send(
-                        json.dumps(
-                            {
-                                "type": "input_audio_buffer.append",
-                                "audio": openai_audio_b64,
-                            }
-                        )
+                        json.dumps(build_input_audio_append(openai_audio_b64))
                     )
 
                 elif event == "stop":
@@ -311,10 +296,11 @@ async def media_stream(websocket: WebSocket) -> None:
                 data = json.loads(raw_message)
                 event_type = data.get("type", "")
 
-                if event_type == "session.updated":
+                if event_type == EVENT_SESSION_UPDATED:
+                    session_ready.set()
                     logger.info("Session updated and ready")
 
-                elif event_type == "response.audio.delta":
+                elif event_type == EVENT_RESPONSE_AUDIO_DELTA:
                     delta_b64 = data.get("delta", "")
                     if not delta_b64 or not stream_sid:
                         continue
@@ -336,10 +322,10 @@ async def media_stream(websocket: WebSocket) -> None:
                         )
                     )
 
-                elif event_type == "response.audio_transcript.delta":
+                elif event_type == EVENT_RESPONSE_AUDIO_TRANSCRIPT_DELTA:
                     bot_transcript_buffer += data.get("delta", "")
 
-                elif event_type == "response.audio_transcript.done":
+                elif event_type == EVENT_RESPONSE_AUDIO_TRANSCRIPT_DONE:
                     transcript_text = data.get("transcript", bot_transcript_buffer)
                     bot_transcript_buffer = ""
                     line = f"[PATIENT BOT] {transcript_text}"
@@ -348,10 +334,7 @@ async def media_stream(websocket: WebSocket) -> None:
                         recorder.add_transcript_line("PATIENT BOT", transcript_text)
                     logger.info("Bot utterance completed: %s", transcript_text)
 
-                elif (
-                    event_type
-                    == "conversation.item.input_audio_transcription.completed"
-                ):
+                elif event_type == EVENT_INPUT_AUDIO_TRANSCRIPTION_COMPLETED:
                     transcript_text = data.get("transcript", "")
                     line = f"[AGENT] {transcript_text}"
                     transcript_lines.append(line)
@@ -359,13 +342,13 @@ async def media_stream(websocket: WebSocket) -> None:
                         recorder.add_transcript_line("AGENT", transcript_text)
                     logger.info("Agent utterance transcribed: %s", transcript_text)
 
-                elif event_type == "input_audio_buffer.speech_started":
+                elif event_type == EVENT_SPEECH_STARTED:
                     logger.info("Agent started speaking")
 
-                elif event_type == "input_audio_buffer.speech_stopped":
+                elif event_type == EVENT_SPEECH_STOPPED:
                     logger.info("Agent stopped speaking")
 
-                elif event_type == "error":
+                elif event_type == EVENT_ERROR:
                     logger.error(
                         "OpenAI Realtime error: %s",
                         data.get("error", data),
