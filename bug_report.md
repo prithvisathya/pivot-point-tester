@@ -14,84 +14,16 @@
 
 ---
 
-## Pre-Identified Bugs (from manual test call before automation)
-
-### BUG-001
-Severity: HIGH
-Call: Manual test call (pre-automation)
-Timestamp: Throughout call
-Description: Provider name changed three times within a single call.
-The agent referred to the same provider as "Duty Hauser", then 
-"Dubie Hauser", then "Doogie Hauser" in three consecutive mentions 
-during one call.
-Expected behavior: Provider name should be consistent throughout 
-the entire call.
-Impact: Patient would not know which doctor they are actually seeing. 
-Could cause confusion and loss of trust at check-in.
-
-### BUG-002
-Severity: MEDIUM
-Call: Manual test call (pre-automation)
-Timestamp: Multiple points throughout call
-Description: Agent interrupted the caller mid-sentence multiple times.
-The patient was saying "I am open to the..." and the agent cut in 
-before the sentence was complete.
-Expected behavior: Agent should use proper turn-taking behavior and 
-wait for the patient to finish speaking before responding.
-Impact: Frustrating patient experience and potential for missed 
-information if the patient was providing important details.
-
-### BUG-003
-Severity: MEDIUM
-Call: Manual test call (pre-automation)
-Timestamp: Immediately after BUG-002 occurrence
-Description: Agent said "Are you still there?" immediately after it 
-was the agent itself that interrupted the patient mid-sentence.
-Expected behavior: Agent should not prompt the patient with 
-abandonment language when the interruption was caused by the agent.
-Impact: Confusing and contradictory patient experience. The agent 
-interrupted the patient and then asked if the patient was present.
-
----
-
 ## Automated Test Findings
 
 (This section is automatically appended by analyzer.py after each call)
 
 ---
----
-## Automated Finding — Call call_05 | Scenario 1: Maria Gonzalez
-Date: 2026-06-23 02:38:05
+## Automated Finding — Call call_14 | Scenario 1: Maria Gonzalez
+Date: 2026-06-23 09:53:11
 
-No automated issues detected for this call.
-
----
-## Automated Finding — Call call_06 | Scenario 1: Maria Gonzalez
-Date: 2026-06-23 09:11:33
-
-No automated issues detected for this call.
-
----
-## Automated Finding — Call call_07 | Scenario 1: Maria Gonzalez
-Date: 2026-06-23 09:18:15
-
-No automated issues detected for this call.
-
----
-## Automated Finding — Call call_08 | Scenario 1: Maria Gonzalez
-Date: 2026-06-23 09:20:35
-
-No automated issues detected for this call.
-
----
-## Automated Finding — Call call_09 | Scenario 1: Maria Gonzalez
-Date: 2026-06-23 09:21:41
-
-No automated issues detected for this call.
-
----
-## Automated Finding — Call call_10 | Scenario 1: Maria Gonzalez
-Date: 2026-06-23 09:27:09
-
-No automated issues detected for this call.
-
+### FINDING-1
+Severity: HIGH
+Pattern: 2 — Provider Name Inconsistency
+Evidence: [00:01:23] [AGENT]: We have openings for a new patient consultation this Thursday, June 25th with Doogie Houser. Would you like 1030 a.m., 345 p.m., or 430 p.m.? | [00:01:23] [AGENT]: We have openings for a new patient consultation this Thursday, June 25th with Doogie Houser. Would you like 1030 a.m., 345 p.m., or 430 p.m.?
+Details: Provider name inconsistency detected. Found these variations: houser, doogie

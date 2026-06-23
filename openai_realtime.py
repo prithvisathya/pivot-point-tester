@@ -33,9 +33,9 @@ HANDSHAKE_TIMEOUT_SECONDS = 30
 
 EVENT_SESSION_CREATED = "session.created"
 EVENT_SESSION_UPDATED = "session.updated"
-EVENT_RESPONSE_AUDIO_DELTA = "response.audio.delta"
-EVENT_RESPONSE_AUDIO_TRANSCRIPT_DELTA = "response.audio_transcript.delta"
-EVENT_RESPONSE_AUDIO_TRANSCRIPT_DONE = "response.audio_transcript.done"
+EVENT_RESPONSE_AUDIO_DELTA = "response.output_audio.delta"
+EVENT_RESPONSE_AUDIO_TRANSCRIPT_DELTA = "response.output_audio_transcript.delta"
+EVENT_RESPONSE_AUDIO_TRANSCRIPT_DONE = "response.output_audio_transcript.done"
 EVENT_INPUT_AUDIO_TRANSCRIPTION_COMPLETED = (
     "conversation.item.input_audio_transcription.completed"
 )
@@ -63,30 +63,37 @@ def build_connection_headers(api_key: str) -> dict[str, str]:
 
 
 def build_session_update(instructions: str) -> dict[str, Any]:
-    """
-    Build session.update payload for the GA Realtime API.
-
-    Sent after session.created is received during handshake.
-    """
+    """Build session.update payload for the GA Realtime API."""
     return {
         "type": EVENT_SESSION_UPDATE,
         "session": {
-            "modalities": ["text", "audio"],
+            "type": "realtime",
             "instructions": instructions,
-            "voice": "alloy",
-            "input_audio_format": "pcm16",
-            "output_audio_format": "pcm16",
-            "input_audio_transcription": {
-                "model": "whisper-1",
+            "output_modalities": ["audio"],
+            "audio": {
+                "input": {
+                    "format": {
+                        "type": "audio/pcm",
+                        "rate": 24000,
+                    },
+                    "turn_detection": {
+                        "type": "server_vad",
+                        "threshold": 0.5,
+                        "prefix_padding_ms": 300,
+                        "silence_duration_ms": 800,
+                    },
+                    "transcription": {
+                        "model": "whisper-1",
+                    },
+                },
+                "output": {
+                    "format": {
+                        "type": "audio/pcm",
+                        "rate": 24000,
+                    },
+                    "voice": "alloy",
+                },
             },
-            "turn_detection": {
-                "type": "server_vad",
-                "threshold": 0.5,
-                "prefix_padding_ms": 300,
-                "silence_duration_ms": 800,
-            },
-            "temperature": 0.8,
-            "max_response_output_tokens": 1024,
         },
     }
 
@@ -159,6 +166,7 @@ async def initialize_session(ws, instructions: str) -> None:
     logger.info("Received session.created")
 
     session_update = build_session_update(instructions)
+    logger.info("Sending session.update: %s", json.dumps(session_update))
     await ws.send(json.dumps(session_update))
     logger.info("Sent session.update to OpenAI Realtime")
 
