@@ -1,7 +1,8 @@
 # Pivot Point Orthopedics — AI Voice Bot Tester
 ## Pretty Good AI Engineering Challenge Submission
 
-- **Walkthrough:** [Watch on Loom](https://www.loom.com/share/b0604c1b242b40c488a7b0cf324644ec)
+
+#**Walkthrough:** [Watch on Loom](https://www.loom.com/share/b0604c1b242b40c488a7b0cf324644ec)
 
 ---
 
